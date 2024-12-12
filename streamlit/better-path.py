@@ -104,6 +104,15 @@ def get_coordinates(address):
         st.warning(f"Error geocoding address: {address}. Error: {str(e)}")
         return None
 
+def create_google_maps_link(waypoints):
+    base_url = "https://www.google.com/maps/dir/?api=1"
+    # Format: origin -> waypoints -> destination
+    origin_encoded = origin.replace(' ', '+')
+    destination_encoded = destination.replace(' ', '+')
+    waypoints_encoded = '|'.join(point.replace(' ', '+') for point in waypoints)
+    
+    return f"{base_url}&origin={origin_encoded}&destination={destination_encoded}&waypoints={waypoints_encoded}&travelmode={transport_mode}"
+
 def calculate_routes():
     if not errands:
         st.error("Please enter at least one valid errand address")
@@ -190,9 +199,17 @@ def calculate_routes():
     st.write("Time-optimized Route (Total time: {:.2f} minutes)".format(shortest_duration/60))
     st.dataframe(duration_df)
     
+    # Add Google Maps link for time-optimized route
+    maps_link = create_google_maps_link(best_route_duration)
+    st.markdown(f"[Open Time-Optimized Route in Google Maps]({maps_link})")
+    
     # Display distance-optimized route
     st.write("Distance-optimized Route (Total distance: {:.2f} km)".format(shortest_distance/1000))
     st.dataframe(distance_df)
+    
+    # Add Google Maps link for distance-optimized route
+    distance_maps_link = create_google_maps_link(best_route_distance)
+    st.markdown(f"[Open Distance-Optimized Route in Google Maps]({distance_maps_link})")
 
 if st.button("Calculate Best Routes"):
     calculate_routes()
