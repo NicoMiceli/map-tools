@@ -32,6 +32,25 @@ transport_mode = st.selectbox(
     index=0  # Default to driving
 )
 
+# Add departure time selector
+st.subheader("Departure Time")
+use_custom_time = st.checkbox("Schedule for later?", False)
+
+if use_custom_time:
+    departure_date = st.date_input(
+        "Select departure date",
+        min_value=datetime.date.today(),
+        value=datetime.date.today()
+    )
+    departure_time_input = st.time_input(
+        "Select departure time",
+        value=datetime.datetime.now().time()
+    )
+    # Combine date and time into datetime object
+    departure_time = datetime.datetime.combine(departure_date, departure_time_input)
+else:
+    departure_time = datetime.datetime.now() + datetime.timedelta(minutes=30)
+
 # Function to calculate total duration for a route with departure time
 def calculate_total_duration(route, departure_time):
     total_duration = 0
@@ -63,7 +82,6 @@ if st.button("Calculate Best Routes"):
     if errands:  # Only proceed if there are valid errands
         # Generate all possible permutations
         all_routes = list(itertools.permutations(errands))
-        departure_time = datetime.datetime.now() + datetime.timedelta(minutes=30)
 
         # Calculate duration-based route
         shortest_duration = float('inf')
