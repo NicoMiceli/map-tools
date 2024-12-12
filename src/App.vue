@@ -1,0 +1,171 @@
+<template>
+  <div class="min-h-screen bg-gray-50 py-8">
+    <div class="container mx-auto px-4 max-w-4xl">
+      <h1 class="text-3xl font-bold mb-4 text-gray-900">Route Optimizer</h1>
+      <p class="mb-8 text-gray-600">Find the best route for your errands based on distance or traffic time</p>
+      
+      <div class="bg-white rounded-lg shadow p-6 space-y-6">
+        <LocationInput 
+          v-model:origin="origin"
+          v-model:destination="destination"
+        />
+
+        <ErrandsList 
+          v-model:errands="errands"
+          v-model:numErrands="numErrands"
+        />
+
+        <TransportOptions
+          v-model:transportMode="transportMode"
+          v-model:useCustomTime="useCustomTime"
+          v-model:departureDate="departureDate"
+          v-model:departureTime="departureTime"
+        />
+
+        <button 
+          @click="calculateRoutes"
+          :disabled="isLoading"
+          class="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
+        >
+          {{ isLoading ? 'Calculating...' : 'Calculate Best Routes' }}
+        </button>
+
+        <RouteResults
+          v-if="showResults"
+          :timeOptimizedRoute="timeOptimizedRoute"
+          :distanceOptimizedRoute="distanceOptimizedRoute"
+          :totalTime="totalTime"
+          :totalDistance="totalDistance"
+          @map-ready="handleMapReady"
+        />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ref, onMounted } from 'vue'
+import LocationInput from './components/LocationInput.vue'
+import ErrandsList from './components/ErrandsList.vue'
+import TransportOptions from './components/TransportOptions.vue'
+import RouteResults from './components/RouteResults.vue'
+import { useGoogleMaps } from './composables/useGoogleMaps'
+
+export default {
+  name: 'App',
+  components: {
+    LocationInput,
+    ErrandsList,
+    TransportOptions,
+    RouteResults
+  },
+  setup() {
+    const API_KEY = 'AIzaSyB0tl4TfxJfgHbAgpmsnUboHJECAQjvKjg'
+    const { initGoogleMaps, calculateRoutes: calculateGoogleRoutes } = useGoogleMaps(API_KEY)
+
+    // Initialize all reactive references
+    const origin = ref('777 S Broad St, Philadelphia, PA 19147')
+    const destination = ref('777 S Broad St, Philadelphia, PA 19147')
+    const numErrands = ref(3)
+    const errands = ref(Array(3).fill(''))
+    const transportMode = ref('driving')
+    const useCustomTime = ref(false)
+    const departureDate = ref(new Date().toISOString().split('T')[0])
+    const departureTime = ref(new Date().toTimeString().slice(0, 5))
+    const showResults = ref(false)
+    const timeOptimizedRoute = ref([])
+    const distanceOptimizedRoute = ref([])
+    const totalTime = ref(0)
+    const totalDistance = ref(0)
+    const isLoading = ref(false)
+    const mapReady = ref(false)
+
+    const handleMapReady = async () => {
+      try {
+        // Add a small delay to ensure DOM is ready
+        await new Promise(resolve => setTimeout(resolve, 100))
+        await initGoogleMaps()
+        mapReady.value = true
+      } catch (error) {
+        console.error('Failed to initialize Google Maps:', error)
+      }
+    }
+
+    const calculateRoutes = async () => {
+      if (isLoading.value) return
+      isLoading.value = true
+      showResults.value = true
+
+      try {
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        await initGoogleMaps()
+        
+        // Filter out empty errands
+        const validErrands = errands.value.filter(errand => errand && errand.trim())
+        
+        if (validErrands.length === 0) {
+          alert('Please enter at least one valid errand address')
+          return
+        }
+
+        if (!origin.value || !destination.value) {
+          alert('Please enter both origin and destination addresses')
+          return
+        }
+
+        const departureDateTime = useCustomTime.value
+          ? new Date(`${departureDate.value}T${departureTime.value}`)
+          : new Date(Date.now() + 30 * 60000)
+
+        console.log('Calculating routes with:', {
+          origin: origin.value,
+          destination: destination.value,
+          errands: validErrands,
+          mode: transportMode.value,
+          time: departureDateTime
+        })
+
+        const results = await calculateGoogleRoutes({
+          origin: origin.value,
+          destination: destination.value,
+          errands: validErrands,
+          transportMode: transportMode.value,
+          departureTime: departureDateTime
+        })
+
+        if (results) {
+          timeOptimizedRoute.value = results.timeOptimizedRoute || []
+          distanceOptimizedRoute.value = results.distanceOptimizedRoute || []
+          totalTime.value = results.totalTime || 0
+          totalDistance.value = results.totalDistance || 0
+        }
+      } catch (error) {
+        console.error('Route calculation error:', error)
+        alert(`Failed to calculate routes: ${error.message}`)
+      } finally {
+        isLoading.value = false
+      }
+    }
+
+    return {
+      origin,
+      destination,
+      numErrands,
+      errands,
+      transportMode,
+      useCustomTime,
+      departureDate,
+      departureTime,
+      showResults,
+      timeOptimizedRoute,
+      distanceOptimizedRoute,
+      totalTime,
+      totalDistance,
+      calculateRoutes,
+      isLoading,
+      handleMapReady
+    }
+  }
+}
+</script> 
