@@ -27,3 +27,63 @@ npm run dev
 ```sh
 npm run build
 ```
+
+## Deploying to Netlify
+
+### Prerequisites
+
+1. Install Netlify CLI globally:
+```sh
+npm install -g netlify-cli
+```
+
+2. Login to Netlify:
+```sh
+netlify login
+```
+
+### Environment Setup
+
+1. Create a `.env` file in the project root with your Google Maps API key:
+```
+VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+```
+
+2. Set up the environment variable in Netlify:
+```sh
+netlify env:set VITE_GOOGLE_MAPS_API_KEY your_api_key_here
+```
+
+### Deployment
+
+1. Initialize Netlify project (first time only):
+```sh
+netlify init
+```
+
+2. Deploy to draft URL:
+```sh
+npm run deploy:draft
+```
+
+3. Deploy to production:
+```sh
+npm run deploy:prod
+```
+
+### Useful Netlify Commands
+
+- Check site status:
+```sh
+netlify status
+```
+
+- Open site admin panel:
+```sh
+netlify open
+```
+
+- View deployment logs:
+```sh
+netlify watch
+```
