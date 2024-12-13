@@ -12,12 +12,18 @@ export function useGoogleMaps(apiKey) {
     const loader = new Loader({
       apiKey,
       version: "weekly",
-      libraries: ["places", "routes"]
+      libraries: ["places", "routes", "geometry"]
     })
 
     try {
       google.value = await loader.load()
       console.log('Google Maps loaded successfully')
+      
+      // Check if Places API is available
+      if (!google.value.maps.places) {
+        throw new Error('Places API not available. Please ensure it is enabled in the Google Cloud Console.')
+      }
+      
       directionsService.value = new google.value.maps.DirectionsService()
       directionsRenderer.value = new google.value.maps.DirectionsRenderer()
       
@@ -45,6 +51,9 @@ export function useGoogleMaps(apiKey) {
       throw new Error('Map element not found after multiple attempts')
     } catch (error) {
       console.error('Error initializing Google Maps:', error)
+      if (error.message.includes('ApiNotActivatedMapError')) {
+        throw new Error('Google Places API is not enabled. Please enable it in the Google Cloud Console.')
+      }
       throw error
     }
   }
