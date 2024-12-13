@@ -66,8 +66,8 @@ export default {
     const { initGoogleMaps, calculateRoutes: calculateGoogleRoutes } = useGoogleMaps(API_KEY)
 
     // Initialize all reactive references
-    const origin = ref('777 S Broad St, Philadelphia, PA 19147')
-    const destination = ref('777 S Broad St, Philadelphia, PA 19147')
+    const origin = ref('')
+    const destination = ref('')
     const numErrands = ref(3)
     const errands = ref(Array(3).fill(''))
     const transportMode = ref('driving')
