@@ -23,6 +23,7 @@
         @input="$emit('update:origin', $event.target.value)"
         class="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
         placeholder="Enter starting address"
+        autocomplete="off"
       />
     </div>
     <div>
@@ -48,6 +49,7 @@
         @input="$emit('update:destination', $event.target.value)"
         class="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
         placeholder="Enter destination address"
+        autocomplete="off"
       />
     </div>
   </div>
@@ -68,37 +70,68 @@ export default {
   setup(props, { emit }) {
     const originInput = ref(null)
     const destinationInput = ref(null)
+    const originAutocomplete = ref(null)
+    const destinationAutocomplete = ref(null)
 
     const setHomeAddress = (field) => {
       emit(`update:${field}`, HOME_ADDRESS)
     }
 
     const initializeAutocomplete = (element, updateField) => {
-      if (!window.google || !element) return
+      if (!window.google?.maps?.places || !element) {
+        console.warn('Google Maps Places not loaded yet')
+        return null
+      }
 
       try {
+        if (element.getAttribute('data-autocomplete-initialized')) {
+          google.maps.event.clearInstanceListeners(element)
+        }
+
         const autocomplete = new google.maps.places.Autocomplete(element, {
           types: ['address'],
           componentRestrictions: { country: 'us' },
-          fields: ['formatted_address']
+          fields: ['formatted_address', 'geometry'],
+          strictBounds: false
         })
 
+        element.setAttribute('data-autocomplete-initialized', 'true')
+
         autocomplete.addListener('place_changed', () => {
-          const place = autocomplete.getPlace()
-          if (place.formatted_address) {
-            emit(updateField, place.formatted_address)
+          try {
+            const place = autocomplete.getPlace()
+            if (place.formatted_address) {
+              emit(updateField, place.formatted_address)
+            }
+          } catch (error) {
+            console.error('Error handling place selection:', error)
           }
         })
+
+        element.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+          }
+        })
+
+        return autocomplete
       } catch (error) {
         console.error('Error initializing autocomplete:', error)
+        return null
       }
     }
 
     onMounted(() => {
-      setTimeout(() => {
-        initializeAutocomplete(originInput.value, 'update:origin')
-        initializeAutocomplete(destinationInput.value, 'update:destination')
-      }, 100)
+      const initializeAutocompletes = () => {
+        if (window.google?.maps?.places) {
+          originAutocomplete.value = initializeAutocomplete(originInput.value, 'update:origin')
+          destinationAutocomplete.value = initializeAutocomplete(destinationInput.value, 'update:destination')
+        } else {
+          setTimeout(initializeAutocompletes, 100)
+        }
+      }
+
+      initializeAutocompletes()
     })
 
     return {
@@ -108,4 +141,22 @@ export default {
     }
   }
 }
-</script> 
+</script>
+
+<style scoped>
+:deep(.pac-container) {
+  background-color: white;
+  z-index: 1000;
+  border-radius: 0.375rem;
+  margin-top: 4px;
+}
+
+:deep(.pac-item) {
+  padding: 8px;
+  cursor: pointer;
+}
+
+:deep(.pac-item:hover) {
+  background-color: #f3f4f6;
+}
+</style> 

@@ -82,6 +82,16 @@ export default {
     const isLoading = ref(false)
     const mapReady = ref(false)
 
+    // Initialize Google Maps as soon as the component mounts
+    onMounted(async () => {
+      try {
+        await initGoogleMaps()
+        console.log('Google Maps initialized successfully')
+      } catch (error) {
+        console.error('Failed to initialize Google Maps:', error)
+      }
+    })
+
     const handleMapReady = async () => {
       try {
         // Add a small delay to ensure DOM is ready

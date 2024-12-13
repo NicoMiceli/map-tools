@@ -8,59 +8,68 @@ export function useGoogleMaps(apiKey) {
   const directionsRenderer = ref(null)
 
   const initGoogleMaps = async () => {
+    if (window.google?.maps?.places) {
+      google.value = window.google
+      // Initialize services if they don't exist
+      if (!directionsService.value) {
+        directionsService.value = new google.value.maps.DirectionsService()
+      }
+      if (!directionsRenderer.value) {
+        directionsRenderer.value = new google.value.maps.DirectionsRenderer()
+      }
+      return google.value
+    }
+
     console.log('Initializing Google Maps with API key:', apiKey)
     const loader = new Loader({
       apiKey,
       version: "weekly",
-      libraries: ["places", "routes", "geometry"]
+      libraries: ["places", "routes"],
+      componentRestrictions: { country: "us" }
     })
 
     try {
-      google.value = await loader.load()
-      console.log('Google Maps loaded successfully')
-      
-      // Check if Places API is available
-      if (!google.value.maps.places) {
-        throw new Error('Places API not available. Please ensure it is enabled in the Google Cloud Console.')
-      }
-      
+      const googleMaps = await loader.load()
+      window.google = googleMaps
+      google.value = googleMaps
+
+      // Initialize services
       directionsService.value = new google.value.maps.DirectionsService()
       directionsRenderer.value = new google.value.maps.DirectionsRenderer()
-      
-      // Wait for the map element to be available
-      let attempts = 0
-      const maxAttempts = 10
-      
-      while (attempts < maxAttempts) {
-        const mapElement = document.getElementById("map")
-        if (mapElement) {
-          map.value = new google.value.maps.Map(mapElement, {
-            zoom: 12,
-            center: { lat: 39.9526, lng: -75.1652 }
-          })
-          
-          directionsRenderer.value.setMap(map.value)
-          console.log('Map initialized successfully')
-          return google.value
-        }
-        
-        await new Promise(resolve => setTimeout(resolve, 100))
-        attempts++
+
+      // Verify Places API is loaded
+      if (!google.value.maps.places) {
+        throw new Error('Places API not loaded')
       }
-      
-      throw new Error('Map element not found after multiple attempts')
+
+      console.log('Google Maps and Places API loaded successfully')
+      return google.value
     } catch (error) {
-      console.error('Error initializing Google Maps:', error)
-      if (error.message.includes('ApiNotActivatedMapError')) {
-        throw new Error('Google Places API is not enabled. Please enable it in the Google Cloud Console.')
-      }
+      console.error('Error loading Google Maps:', error)
       throw error
     }
   }
 
   const calculateRoute = async (waypoints, mode, departureTime) => {
-    if (!google.value || !directionsService.value) {
-      console.error('Google Maps not initialized')
+    // Ensure Google Maps is initialized
+    if (!google.value) {
+      await initGoogleMaps()
+    }
+
+    // Initialize map if not already done
+    if (!map.value) {
+      const mapElement = document.getElementById("map")
+      if (mapElement) {
+        map.value = new google.value.maps.Map(mapElement, {
+          zoom: 12,
+          center: { lat: 39.9526, lng: -75.1652 }
+        })
+        directionsRenderer.value.setMap(map.value)
+      }
+    }
+
+    if (!directionsService.value) {
+      console.error('Directions service not initialized')
       return null
     }
 
@@ -137,9 +146,9 @@ export function useGoogleMaps(apiKey) {
     transportMode,
     departureTime
   }) => {
-    const waypoints = [origin, ...errands, destination]
-    
     try {
+      await initGoogleMaps() // Ensure Google Maps is initialized first
+      const waypoints = [origin, ...errands, destination]
       const timeResult = await calculateRoute(waypoints, transportMode, departureTime)
       const distanceResult = await calculateRoute(waypoints, transportMode)
 
