@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-8">
+  <div class="min-h-screen bg-gradient-to-r from-slate-900 to-slate-700 text-white">
     <div class="container mx-auto px-4 max-w-4xl">
-      <h1 class="text-3xl font-bold mb-4 text-gray-900">Route Optimizer</h1>
-      <p class="mb-8 text-gray-600">Find the best route for your errands based on distance or traffic time</p>
+      <h1 class="text-3xl font-bold mb-4 text-white">Route Optimizer</h1>
+      <p class="mb-8 text-gray-200">Find the best route for your errands based on distance or traffic time</p>
       
-      <div class="bg-white rounded-lg shadow p-6 space-y-6">
+      <div class="bg-gray-800/50 backdrop-blur-sm rounded-lg shadow p-6 space-y-6">
         <LocationInput 
           v-model:origin="origin"
           v-model:destination="destination"
@@ -147,6 +147,10 @@ export default {
         isLoading.value = false
       }
     }
+
+    onMounted(() => {
+      document.documentElement.classList.add('dark')
+    })
 
     return {
       origin,
