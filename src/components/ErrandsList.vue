@@ -61,42 +61,54 @@ export default {
     }
   },
   emits: ['update:numErrands', 'update:errands'],
-  setup(props) {
+  setup(props, { emit }) {
     const errandInputs = ref([])
     const autocompletes = ref([])
 
     const initializeAutocomplete = (element, index) => {
-      if (!window.google || !element) return
+      if (!window.google?.maps?.places || !element) return
 
       try {
-        // Remove any existing autocomplete
         if (autocompletes.value[index]) {
           google.maps.event.clearInstanceListeners(element)
         }
 
         const autocomplete = new google.maps.places.Autocomplete(element, {
-          types: ['address'],
+          types: ['establishment'],
           componentRestrictions: { country: 'us' },
-          fields: ['formatted_address']
+          fields: ['formatted_address', 'name', 'geometry'],
+          strictBounds: false
         })
+
+        element.setAttribute('data-autocomplete-initialized', 'true')
 
         autocomplete.addListener('place_changed', () => {
           try {
             const place = autocomplete.getPlace()
+            const newErrands = [...props.errands]
+            
             if (place.formatted_address) {
-              const newErrands = [...props.errands]
               newErrands[index] = place.formatted_address
-              emit('update:errands', newErrands)
+            } else if (place.name) {
+              newErrands[index] = place.name
             }
+            
+            emit('update:errands', newErrands)
           } catch (error) {
             console.error('Error handling place selection:', error)
+          }
+        })
+
+        // Prevent form submission on enter
+        element.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
           }
         })
 
         autocompletes.value[index] = autocomplete
       } catch (error) {
         console.error('Error initializing autocomplete:', error)
-        // Don't throw, allows fallback to manual input
       }
     }
 
@@ -114,36 +126,40 @@ export default {
 
     onMounted(() => {
       // Initialize autocomplete for initial inputs
-      setTimeout(() => {
-        errandInputs.value.forEach((input, index) => {
-          if (input) {
-            initializeAutocomplete(input, index)
-          }
-        })
-      }, 100)
+      const initializeAutocompletes = () => {
+        if (window.google && window.google.maps && window.google.maps.places) {
+          errandInputs.value.forEach((input, index) => {
+            if (input) {
+              initializeAutocomplete(input, index)
+            }
+          })
+        } else {
+          // Retry after a short delay
+          setTimeout(initializeAutocompletes, 100)
+        }
+      }
+
+      initializeAutocompletes()
     })
 
     return {
       errandInputs,
-      // ... existing methods
-    }
-  },
-  methods: {
-    updateNumErrands(event) {
-      const value = parseInt(event.target.value)
-      this.$emit('update:numErrands', value)
-    },
-    updateErrand(index, value) {
-      const newErrands = [...(this.errands || [])]
-      newErrands[index] = value
-      this.$emit('update:errands', newErrands)
-    },
-    getDefaultAddress(index) {
-      return index < PLACEHOLDER_ADDRESSES.length ? PLACEHOLDER_ADDRESSES[index] : "Enter address"
-    },
-    loadDefaultAddresses() {
-      this.$emit('update:numErrands', TEST_ADDRESSES.length)
-      this.$emit('update:errands', [...TEST_ADDRESSES])
+      updateNumErrands(event) {
+        const value = parseInt(event.target.value)
+        emit('update:numErrands', value)
+      },
+      updateErrand(index, value) {
+        const newErrands = [...(props.errands || [])]
+        newErrands[index] = value
+        emit('update:errands', newErrands)
+      },
+      getDefaultAddress(index) {
+        return index < PLACEHOLDER_ADDRESSES.length ? PLACEHOLDER_ADDRESSES[index] : "Enter address"
+      },
+      loadDefaultAddresses() {
+        emit('update:numErrands', TEST_ADDRESSES.length)
+        emit('update:errands', [...TEST_ADDRESSES])
+      }
     }
   }
 }
