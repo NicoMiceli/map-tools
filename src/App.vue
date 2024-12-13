@@ -4,7 +4,7 @@
       <h1 class="text-5xl font-bold mb-8 bg-gradient-to-r from-pink-500 to-yellow-500 bg-clip-text text-transparent text-center">
         Better Paths
       </h1>
-      <p class="mb-8 text-gray-200 text-center">Find the best route for your errands and other shit to do.</p>
+      <p class="mb-8 text-gray-200 text-center">Find the best route for your errands and other shit you have to do.</p>
       
       <div class="bg-gray-800/50 backdrop-blur-sm rounded-lg shadow p-6 space-y-6">
         <LocationInput 
