@@ -1,8 +1,10 @@
-<template>
-  <div class="min-h-screen bg-gradient-to-r from-slate-900 to-slate-700 text-white">
-    <div class="container mx-auto px-4 max-w-4xl">
-      <h1 class="text-3xl font-bold mb-4 text-white">Route Optimizer</h1>
-      <p class="mb-8 text-gray-200">Find the best route for your errands based on distance or traffic time</p>
+<template> 
+  <div class="min-h-screen bg-gradient-to-r from-slate-800 to-indigo-900 text-white">
+    <div class="container mx-auto px-4 max-w-4xl pt-12">
+      <h1 class="text-5xl font-bold mb-8 bg-gradient-to-r from-pink-500 to-yellow-500 bg-clip-text text-transparent text-center">
+        Better Paths
+      </h1>
+      <p class="mb-8 text-gray-200 text-center">Find the best route for your errands and other shit to do.</p>
       
       <div class="bg-gray-800/50 backdrop-blur-sm rounded-lg shadow p-6 space-y-6">
         <LocationInput 
@@ -22,7 +24,7 @@
           v-model:departureTime="departureTime"
         />
 
-        <button 
+        <button elevation="24"
           @click="calculateRoutes"
           :disabled="isLoading"
           class="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"

@@ -25,6 +25,7 @@
         <label class="block text-sm font-medium text-white">Errand {{ index + 1 }}</label>
         <input
           type="text"
+          ref="errandInputs"
           :value="errands[index]"
           @input="updateErrand(index, $event.target.value)"
           class="mt-1 block w-full rounded bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
@@ -36,6 +37,8 @@
 </template>
 
 <script>
+import { ref, onMounted, watch } from 'vue'
+
 const PLACEHOLDER_ADDRESSES = [
   "Judgy Coffee Shop",
   "Broken Cart Grocery",
@@ -58,6 +61,73 @@ export default {
     }
   },
   emits: ['update:numErrands', 'update:errands'],
+  setup(props) {
+    const errandInputs = ref([])
+    const autocompletes = ref([])
+
+    const initializeAutocomplete = (element, index) => {
+      if (!window.google || !element) return
+
+      try {
+        // Remove any existing autocomplete
+        if (autocompletes.value[index]) {
+          google.maps.event.clearInstanceListeners(element)
+        }
+
+        const autocomplete = new google.maps.places.Autocomplete(element, {
+          types: ['address'],
+          componentRestrictions: { country: 'us' },
+          fields: ['formatted_address']
+        })
+
+        autocomplete.addListener('place_changed', () => {
+          try {
+            const place = autocomplete.getPlace()
+            if (place.formatted_address) {
+              const newErrands = [...props.errands]
+              newErrands[index] = place.formatted_address
+              emit('update:errands', newErrands)
+            }
+          } catch (error) {
+            console.error('Error handling place selection:', error)
+          }
+        })
+
+        autocompletes.value[index] = autocomplete
+      } catch (error) {
+        console.error('Error initializing autocomplete:', error)
+        // Don't throw, allows fallback to manual input
+      }
+    }
+
+    // Watch for changes in the number of errands
+    watch(() => props.numErrands, () => {
+      // Wait for DOM update before initializing new autocomplete fields
+      setTimeout(() => {
+        errandInputs.value.forEach((input, index) => {
+          if (input) {
+            initializeAutocomplete(input, index)
+          }
+        })
+      }, 100)
+    })
+
+    onMounted(() => {
+      // Initialize autocomplete for initial inputs
+      setTimeout(() => {
+        errandInputs.value.forEach((input, index) => {
+          if (input) {
+            initializeAutocomplete(input, index)
+          }
+        })
+      }, 100)
+    })
+
+    return {
+      errandInputs,
+      // ... existing methods
+    }
+  },
   methods: {
     updateNumErrands(event) {
       const value = parseInt(event.target.value)
