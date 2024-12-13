@@ -62,7 +62,7 @@ export default {
     RouteResults
   },
   setup() {
-    const API_KEY = 'AIzaSyB0tl4TfxJfgHbAgpmsnUboHJECAQjvKjg'
+    const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
     const { initGoogleMaps, calculateRoutes: calculateGoogleRoutes } = useGoogleMaps(API_KEY)
 
     // Initialize all reactive references

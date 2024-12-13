@@ -18,5 +18,8 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true
+  },
+  define: {
+    'process.env.VITE_GOOGLE_MAPS_API_KEY': JSON.stringify(process.env.VITE_GOOGLE_MAPS_API_KEY)
   }
 })
