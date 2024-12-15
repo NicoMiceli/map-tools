@@ -2,7 +2,7 @@
   <div class="space-y-4">
     <div>
       <div class="flex justify-between items-center mb-2">
-        <label class="block bg-gradient-to-r from-pink-500 to-yellow-500 bg-clip-text text-transparent">
+        <label class="block text-sm font-medium text-white bg-clip-text text-transparent">
           Starting Point
         </label>
         <button 
@@ -28,7 +28,7 @@
     </div>
     <div>
       <div class="flex justify-between items-center mb-2">
-        <label class="block bg-gradient-to-r from-pink-500 to-yellow-500 bg-clip-text text-transparent">
+        <label class="block text-sm font-medium text-white bg-clip-text text-transparent">
           Final Destination
         </label>
         <button 
