@@ -8,34 +8,54 @@ export function useGoogleMaps(apiKey) {
   const directionsRenderer = ref(null)
 
   const initGoogleMaps = async () => {
+    console.log('initGoogleMaps called with API key:', apiKey ? 'Present' : 'Missing')
+    
     if (window.google?.maps?.places) {
+      console.log('Google Maps already loaded, reusing instance')
       google.value = window.google
       // Initialize services if they don't exist
       if (!directionsService.value) {
-        directionsService.value = new google.value.maps.DirectionsService()
+        try {
+          directionsService.value = new google.value.maps.DirectionsService()
+          console.log('DirectionsService initialized')
+        } catch (error) {
+          console.error('Failed to initialize DirectionsService:', error)
+        }
       }
       if (!directionsRenderer.value) {
-        directionsRenderer.value = new google.value.maps.DirectionsRenderer()
+        try {
+          directionsRenderer.value = new google.value.maps.DirectionsRenderer()
+          console.log('DirectionsRenderer initialized')
+        } catch (error) {
+          console.error('Failed to initialize DirectionsRenderer:', error)
+        }
       }
       return google.value
     }
 
-    console.log('Initializing Google Maps with API key:', apiKey)
-    const loader = new Loader({
-      apiKey,
-      version: "weekly",
-      libraries: ["places", "routes"],
-      componentRestrictions: { country: "us" }
-    })
-
     try {
+      console.log('Creating new Google Maps loader')
+      const loader = new Loader({
+        apiKey,
+        version: "weekly",
+        libraries: ["places", "routes"],
+        componentRestrictions: { country: "us" }
+      })
+
       const googleMaps = await loader.load()
+      console.log('Google Maps loaded successfully')
       window.google = googleMaps
       google.value = googleMaps
 
       // Initialize services
-      directionsService.value = new google.value.maps.DirectionsService()
-      directionsRenderer.value = new google.value.maps.DirectionsRenderer()
+      try {
+        directionsService.value = new google.value.maps.DirectionsService()
+        directionsRenderer.value = new google.value.maps.DirectionsRenderer()
+        console.log('Services initialized successfully')
+      } catch (error) {
+        console.error('Failed to initialize services:', error)
+        throw error
+      }
 
       // Verify Places API is loaded
       if (!google.value.maps.places) {
@@ -45,7 +65,11 @@ export function useGoogleMaps(apiKey) {
       console.log('Google Maps and Places API loaded successfully')
       return google.value
     } catch (error) {
-      console.error('Error loading Google Maps:', error)
+      console.error('Google Maps initialization error:', {
+        message: error.message,
+        stack: error.stack,
+        apiKeyPresent: !!apiKey
+      })
       throw error
     }
   }

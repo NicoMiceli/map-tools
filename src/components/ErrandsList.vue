@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-4">
     <div class="flex justify-between items-center">
-      <h2 class="text-xl font-semibold text-white">Enter your errands</h2>
+      <h2 class="text-xl font-semibold bg-gradient-to-r from-pink-500 to-yellow-500 bg-clip-text text-transparent">Enter your errands</h2>
       <button 
         @click="loadDefaultAddresses"
         class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"

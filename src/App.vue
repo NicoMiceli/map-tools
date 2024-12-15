@@ -4,7 +4,7 @@
       <h1 class="text-5xl font-bold mb-8 bg-gradient-to-r from-pink-500 to-yellow-500 bg-clip-text text-transparent text-center">
         Better Paths
       </h1>
-      <p class="mb-8 text-gray-200 text-center">Find the best route for your errands and other shit you have to do.</p>
+      <p class="mb-8 text-gray-200 text-center">Find the best route for your errands and other stuff you have to do.</p>
       
       <div class="bg-gray-800/50 backdrop-blur-sm rounded-lg shadow p-6 space-y-6">
         <LocationInput 
@@ -63,6 +63,8 @@ export default {
   },
   setup() {
     const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+    console.log('API Key loaded:', API_KEY ? 'Yes' : 'No')
+    
     const { initGoogleMaps, calculateRoutes: calculateGoogleRoutes } = useGoogleMaps(API_KEY)
 
     // Initialize all reactive references
@@ -84,6 +86,10 @@ export default {
 
     // Initialize Google Maps as soon as the component mounts
     onMounted(async () => {
+      if (!import.meta.env.VITE_GOOGLE_MAPS_API_KEY) {
+        console.error('Google Maps API key not found in environment variables')
+        return
+      }
       try {
         await initGoogleMaps()
         console.log('Google Maps initialized successfully')
