@@ -1,16 +1,24 @@
 <template>
   <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
+    <table class="min-w-full divide-y divide-gray-600">
+      <thead>
         <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stop</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+            Stop
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+            Address
+          </th>
         </tr>
       </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
+      <tbody class="divide-y divide-gray-600">
         <tr v-for="(address, index) in route" :key="index">
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ index + 1 }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ address }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+            {{ index === 0 ? 'Start' : index === route.length - 1 ? 'End' : `Stop ${index}` }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+            {{ address }}
+          </td>
         </tr>
       </tbody>
     </table>

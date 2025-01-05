@@ -37,7 +37,7 @@
 </template>
 
 <script>
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref } from 'vue'
 import RouteTable from './RouteTable.vue'
 
 export default {
@@ -46,11 +46,24 @@ export default {
     RouteTable
   },
   props: {
-    timeOptimizedRoute: Array,
-    distanceOptimizedRoute: Array,
-    totalTime: Number,
-    totalDistance: Number
+    timeOptimizedRoute: {
+      type: Array,
+      default: () => []
+    },
+    distanceOptimizedRoute: {
+      type: Array,
+      default: () => []
+    },
+    totalTime: {
+      type: Number,
+      default: 0
+    },
+    totalDistance: {
+      type: Number,
+      default: 0
+    }
   },
+  emits: ['map-ready'],
   setup(props, { emit }) {
     const mapElement = ref(null)
 
@@ -71,11 +84,14 @@ export default {
         return `${(meters / 1000).toFixed(2)} km`
       },
       createGoogleMapsLink(waypoints) {
-        const baseUrl = "https://www.google.com/maps/dir/?api=1"
-        const waypointsEncoded = waypoints
-          .map(point => encodeURIComponent(point))
-          .join('|')
-        return `${baseUrl}&waypoints=${waypointsEncoded}`
+        if (!waypoints || waypoints.length < 2) return '#'
+        const origin = encodeURIComponent(waypoints[0])
+        const destination = encodeURIComponent(waypoints[waypoints.length - 1])
+        const intermediatePoints = waypoints.slice(1, -1)
+        const waypointsParam = intermediatePoints.length 
+          ? `&waypoints=${intermediatePoints.map(wp => encodeURIComponent(wp)).join('|')}`
+          : ''
+        return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypointsParam}`
       }
     }
   }

@@ -1,13 +1,13 @@
 <template>
   <div class="space-y-4">
-    <h2 class="text-xl font-semibold">Transportation Details</h2>
+    <h2 class="text-xl font-semibold bg-gradient-to-r from-pink-500 to-yellow-500 bg-clip-text text-transparent">Transportation Details</h2>
     
     <div>
       <label class="block text-sm font-medium text-white">Mode of Transportation</label>
       <select
         :value="transportMode"
         @change="$emit('update:transportMode', $event.target.value)"
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-white"
+        class="mt-1 block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-white px-4 py-2"
       >
         <option value="driving">Driving</option>
         <option value="walking">Walking</option>
@@ -31,24 +31,32 @@
       </div>
 
       <div v-if="useCustomTime" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-white">Departure Date</label>
-          <input
-            type="date"
-            :value="currentDate"
-            @input="handleDateChange"
-            :min="currentDate"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-white"
-          />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-white">Departure Time</label>
-          <input
-            type="time"
-            :value="currentTime"
-            @input="handleTimeChange"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-white"
-          />
+        <div class="grid grid-cols-2 gap-4">
+          <div class="relative">
+            <label class="block text-sm font-medium text-white">Departure Date</label>
+            <input
+              type="date"
+              :value="currentDate"
+              @input="handleDateChange"
+              :min="currentDate"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-white"
+            />
+            <button 
+              @click="setToday"
+              class="bg-transparent hover:bg-blue-500 text-white font-semibold text-white py-2 px-4 border-blue-500 hover:border-transparent rounded focus:outline-none mt-2"
+            >
+              Today
+            </button>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white">Departure Time</label>
+            <input
+              type="time"
+              :value="currentTime"
+              @input="handleTimeChange"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-white"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -117,6 +125,9 @@ export default {
       } catch (e) {
         console.error('Error handling time change:', e)
       }
+    },
+    setToday() {
+      this.$emit('update:departureDate', new Date())
     }
   }
 }
