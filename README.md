@@ -71,6 +71,23 @@ npm run deploy:draft
 npm run deploy:prod
 ```
 
+### Other deployment options
+
+- Deploy to draft URL:
+```sh
+sudo netlify deploy   
+```
+
+- Deploy to production URL:
+```sh
+sudo netlify deploy --prod
+```
+
+- Deploy with cache clearing:
+```sh
+netlify deploy --prod --force
+```
+
 ### Useful Netlify Commands
 
 - Check site status:
