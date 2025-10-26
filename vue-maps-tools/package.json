@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.8",
+    "netlify-cli": "^23.9.5",
     "vue": "^3.x.x"
   },
   "devDependencies": {
