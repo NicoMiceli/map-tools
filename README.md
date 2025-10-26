@@ -1,106 +1,129 @@
 # vue-maps-tools
 
-This template should help get you started developing with Vue 3 in Vite.
+This project is a Vue 3 application built with Vite for creating map-related tools.
 
-## Recommended IDE Setup
+## Project Setup and Commands
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+### 1. NPM Commands
 
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+First, install the necessary dependencies for the project.
 
 ```sh
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+#### Development
+
+To run the application in development mode with hot-reloading, use the following command.
 
 ```sh
 npm run dev
 ```
 
-### Compile and Minify for Production
+#### Building for Production
+
+To compile and minify the application for production, use the following command. This will create a `dist` directory with the production-ready files.
 
 ```sh
 npm run build
 ```
 
-## Deploying to Netlify
+### 2. Git and GitHub Workflow
 
-### Prerequisites
+To push your local changes to the `master` branch on GitHub, follow these steps.
 
-1. Install Netlify CLI globally:
+First, stage your changes:
+
 ```sh
-npm install -g netlify-cli
+git add .
 ```
 
-2. Login to Netlify:
+Next, commit your changes with a descriptive message:
+
 ```sh
-netlify login
+git commit -m "Your descriptive commit message"
 ```
 
-### Environment Setup
+Finally, push your changes to the `master` branch on GitHub:
 
-1. Create a `.env` file in the project root with your Google Maps API key:
-```
-VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
-```
-
-2. Set up the environment variable in Netlify:
 ```sh
-netlify env:set VITE_GOOGLE_MAPS_API_KEY your_api_key_here
+git push origin master
 ```
 
-### Deployment
+### 3. Deploying to Netlify
 
-1. Initialize Netlify project (first time only):
-```sh
-netlify init
-```
+This project can be deployed to Netlify.
 
-2. Deploy to draft URL:
-```sh
-npm run deploy:draft
-```
+#### Prerequisites
 
-3. Deploy to production:
-```sh
-npm run deploy:prod
-```
+1.  **Install Netlify CLI**: If you don't have it, install the Netlify command-line interface globally.
+    ```sh
+    npm install -g netlify-cli
+    ```
 
-### Other deployment options
+2.  **Login to Netlify**: Authenticate with your Netlify account.
+    ```sh
+    netlify login
+    ```
 
-- Deploy to draft URL:
-```sh
-sudo netlify deploy   
-```
+#### Environment Variables
 
-- Deploy to production URL:
-```sh
-sudo netlify deploy --prod
-```
+You need to set up your Google Maps API key as an environment variable in Netlify.
 
-- Deploy with cache clearing:
-```sh
-netlify deploy --prod --force
-```
+1.  Create a `.env` file in the project root with your Google Maps API key for local development:
+    ```
+    VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+    ```
 
-### Useful Netlify Commands
+2.  Set the environment variable in your Netlify project settings. You can do this through the Netlify UI or via the CLI:
+    ```sh
+    netlify env:set VITE_GOOGLE_MAPS_API_KEY your_api_key_here
+    ```
 
-- Check site status:
-```sh
-netlify status
-```
+#### Deployment Commands
 
-- Open site admin panel:
-```sh
-netlify open
-```
+There are scripts in `package.json` to simplify deployment.
 
-- View deployment logs:
-```sh
-netlify watch
-```
+*   **Deploy to a draft URL**: This will give you a preview of your deployment.
+    ```sh
+    npm run deploy:draft
+    ```
+
+*   **Deploy to production**: This will deploy your site to the main URL.
+    ```sh
+    npm run deploy:prod
+    ```
+
+You can also use the Netlify CLI directly for more control:
+
+*   **Deploy to a draft URL**:
+    ```sh
+    netlify deploy
+    ```
+
+*   **Deploy to production**:
+    ```sh
+    netlify deploy --prod
+    ```
+
+*   **Force a production deploy without cache**:
+    ```sh
+    netlify deploy --prod --force
+    ```
+
+#### Useful Netlify Commands
+
+*   **Check site status**:
+    ```sh
+    netlify status
+    ```
+
+*   **Open site admin panel**:
+    ```sh
+    netlify open
+    ```
+
+*   **View deployment logs**:
+    ```sh
+    netlify watch
+    ```
