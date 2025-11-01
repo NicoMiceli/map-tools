@@ -6,7 +6,7 @@
       <label class="block text-sm font-medium text-white">Mode of Transportation</label>
       <select
         :value="transportMode"
-        @change="$emit('update:transportMode', $event.target.value)"
+        @change="handleTransportModeChange"
         class="mt-1 block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-white px-4 py-2"
       >
         <option value="driving">Driving</option>
@@ -23,7 +23,7 @@
           <input
             type="checkbox"
             :checked="useCustomTime"
-            @change="$emit('update:useCustomTime', $event.target.checked)"
+            @change="handleCustomTimeToggle"
             class="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
           />
           <span class="ml-2 text-sm">Schedule for later?</span>
@@ -38,6 +38,7 @@
               type="date"
               :value="currentDate"
               @input="handleDateChange"
+              @blur="handleDateBlur"
               :min="currentDate"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-white"
             />
@@ -54,6 +55,7 @@
               type="time"
               :value="currentTime"
               @input="handleTimeChange"
+              @blur="handleTimeBlur"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-700 text-white"
             />
           </div>
@@ -64,6 +66,8 @@
 </template>
 
 <script>
+import { useAnalytics } from '../composables/useAnalytics'
+
 export default {
   name: 'TransportOptions',
   props: {
@@ -93,6 +97,14 @@ export default {
     }
   },
   emits: ['update:transportMode', 'update:useCustomTime', 'update:departureDate', 'update:departureTime'],
+  setup() {
+    const { trackFormInteract, trackFormComplete, trackButtonClick } = useAnalytics()
+    return {
+      trackFormInteract,
+      trackFormComplete,
+      trackButtonClick
+    }
+  },
   methods: {
     formatDate(date) {
       try {
@@ -108,11 +120,26 @@ export default {
         return new Date().toTimeString().slice(0, 5)
       }
     },
+    handleTransportModeChange(event) {
+      const value = event.target.value
+      this.$emit('update:transportMode', value)
+      this.trackFormComplete('transport_mode', value)
+    },
+    handleCustomTimeToggle(event) {
+      const checked = event.target.checked
+      this.$emit('update:useCustomTime', checked)
+      this.trackFormInteract('custom_time_toggle', { checked })
+    },
     handleDateChange(event) {
       try {
         this.$emit('update:departureDate', new Date(event.target.value))
       } catch (e) {
         console.error('Error handling date change:', e)
+      }
+    },
+    handleDateBlur(event) {
+      if (event.target.value) {
+        this.trackFormComplete('departure_date')
       }
     },
     handleTimeChange(event) {
@@ -126,7 +153,13 @@ export default {
         console.error('Error handling time change:', e)
       }
     },
+    handleTimeBlur(event) {
+      if (event.target.value) {
+        this.trackFormComplete('departure_time')
+      }
+    },
     setToday() {
+      this.trackButtonClick('set_today')
       this.$emit('update:departureDate', new Date())
     }
   }

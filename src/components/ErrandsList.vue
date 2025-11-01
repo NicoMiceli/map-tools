@@ -15,6 +15,8 @@
         type="number"
         :value="numErrands"
         @input="updateNumErrands"
+        @focus="handleFieldFocus('num_errands')"
+        @blur="handleFieldBlur('num_errands', numErrands)"
         min="1"
         max="10"
         class="mt-1 block w-full rounded bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
@@ -28,6 +30,8 @@
           ref="errandInputs"
           :value="errands[index]"
           @input="updateErrand(index, $event.target.value)"
+          @focus="handleFieldFocus(`errand_${index + 1}`)"
+          @blur="handleFieldBlur(`errand_${index + 1}`, errands[index])"
           class="mt-1 block w-full rounded bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           :placeholder="getDefaultAddress(index)"
         />
@@ -38,6 +42,7 @@
 
 <script>
 import { ref, onMounted, watch } from 'vue'
+import { useAnalytics } from '../composables/useAnalytics'
 
 const PLACEHOLDER_ADDRESSES = [
   "Judgy Coffee Shop",
@@ -64,6 +69,7 @@ export default {
   setup(props, { emit }) {
     const errandInputs = ref([])
     const autocompletes = ref([])
+    const { trackFormInteract, trackFormComplete, trackAutocompleteSelect, trackButtonClick } = useAnalytics()
 
     const initializeAutocomplete = (element, index) => {
       if (!window.google?.maps?.places || !element) return
@@ -89,8 +95,10 @@ export default {
             
             if (place.formatted_address) {
               newErrands[index] = place.formatted_address
+              trackAutocompleteSelect(`errand_${index + 1}_autocomplete`, place.formatted_address)
             } else if (place.name) {
               newErrands[index] = place.name
+              trackAutocompleteSelect(`errand_${index + 1}_autocomplete`, place.name)
             }
             
             emit('update:errands', newErrands)
@@ -142,6 +150,16 @@ export default {
       initializeAutocompletes()
     })
 
+    const handleFieldFocus = (fieldName) => {
+      trackFormInteract(fieldName)
+    }
+
+    const handleFieldBlur = (fieldName, value) => {
+      if (value !== null && value !== undefined && String(value).trim()) {
+        trackFormComplete(fieldName)
+      }
+    }
+
     return {
       errandInputs,
       updateNumErrands(event) {
@@ -157,9 +175,12 @@ export default {
         return index < PLACEHOLDER_ADDRESSES.length ? PLACEHOLDER_ADDRESSES[index] : "Enter address"
       },
       loadDefaultAddresses() {
+        trackButtonClick('load_examples')
         emit('update:numErrands', TEST_ADDRESSES.length)
         emit('update:errands', [...TEST_ADDRESSES])
-      }
+      },
+      handleFieldFocus,
+      handleFieldBlur
     }
   }
 }

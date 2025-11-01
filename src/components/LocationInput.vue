@@ -34,6 +34,8 @@
           type="text"
           :value="origin"
           @input="$emit('update:origin', $event.target.value)"
+          @focus="handleFieldFocus('origin')"
+          @blur="handleFieldBlur('origin', origin)"
           class="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           placeholder="Enter starting address"
           autocomplete="off"
@@ -61,6 +63,8 @@
           type="text"
           :value="destination"
           @input="$emit('update:destination', $event.target.value)"
+          @focus="handleFieldFocus('destination')"
+          @blur="handleFieldBlur('destination', destination)"
           class="w-full px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           placeholder="Enter destination address"
           autocomplete="off"
@@ -73,6 +77,7 @@
 <script>
 import { ref, onMounted } from 'vue'
 import { useSavedAddresses } from '../composables/useSavedAddresses'
+import { useAnalytics } from '../composables/useAnalytics'
 
 const HOME_ADDRESS = '777 S Broad St, Philadelphia, PA 19147'
 
@@ -90,14 +95,17 @@ export default {
     const destinationAutocomplete = ref(null)
     
     const { savedHomeAddress, saveHomeAddress, loadHomeAddress } = useSavedAddresses()
+    const { trackFormInteract, trackFormComplete, trackAutocompleteSelect, trackButtonClick } = useAnalytics()
 
     const setHomeAddress = (field) => {
       if (savedHomeAddress.value) {
         emit(`update:${field}`, savedHomeAddress.value)
+        trackButtonClick(`use_home_${field}`)
       }
     }
 
     const saveCurrentAsHome = () => {
+      trackButtonClick('save_home')
       if (props.origin) {
         const success = saveHomeAddress(props.origin)
         if (success) {
@@ -135,6 +143,9 @@ export default {
             const place = autocomplete.getPlace()
             if (place.formatted_address) {
               emit(updateField, place.formatted_address)
+              // Track autocomplete selection
+              const fieldName = updateField.replace('update:', '')
+              trackAutocompleteSelect(`${fieldName}_autocomplete`, place.formatted_address)
             }
           } catch (error) {
             console.error('Error handling place selection:', error)
@@ -167,12 +178,24 @@ export default {
       initializeAutocompletes()
     })
 
+    const handleFieldFocus = (fieldName) => {
+      trackFormInteract(fieldName)
+    }
+
+    const handleFieldBlur = (fieldName, value) => {
+      if (value && value.trim()) {
+        trackFormComplete(fieldName)
+      }
+    }
+
     return {
       originInput,
       destinationInput,
       setHomeAddress,
       saveCurrentAsHome,
-      savedHomeAddress
+      savedHomeAddress,
+      handleFieldFocus,
+      handleFieldBlur
     }
   }
 }

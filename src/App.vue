@@ -54,6 +54,7 @@ import ErrandsList from './components/ErrandsList.vue'
 import TransportOptions from './components/TransportOptions.vue'
 import RouteResults from './components/RouteResults.vue'
 import { useGoogleMaps } from './composables/useGoogleMaps'
+import { useAnalytics } from './composables/useAnalytics'
 
 export default {
   name: 'App',
@@ -68,6 +69,7 @@ export default {
     console.log('API Key loaded:', API_KEY ? 'Yes' : 'No')
     
     const { initGoogleMaps, calculateRoutes: calculateGoogleRoutes } = useGoogleMaps(API_KEY)
+    const { trackButtonClick, trackRouteSuccess } = useAnalytics()
 
     // Initialize all reactive references
     const origin = ref('')
@@ -113,6 +115,10 @@ export default {
 
     const calculateRoutes = async () => {
       if (isLoading.value) return
+      
+      // Track button click
+      trackButtonClick('calculate_routes')
+      
       isLoading.value = true
       showResults.value = true
 
@@ -159,6 +165,15 @@ export default {
           distanceOptimizedRoute.value = results.distanceOptimizedRoute || []
           totalTime.value = results.totalTime || 0
           totalDistance.value = results.totalDistance || 0
+          
+          // Track successful route calculation
+          trackRouteSuccess({
+            numErrands: validErrands.length,
+            transportMode: transportMode.value,
+            customTimeUsed: useCustomTime.value,
+            totalTime: totalTime.value,
+            totalDistance: totalDistance.value
+          })
         }
       } catch (error) {
         console.error('Route calculation error:', error)

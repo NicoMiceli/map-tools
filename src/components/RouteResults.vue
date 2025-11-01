@@ -11,6 +11,7 @@
           <a
             :href="createGoogleMapsLink(timeOptimizedRoute)"
             target="_blank"
+            @click="handleMapLinkClick('time_optimized')"
             class="text-blue-500 hover:text-blue-600"
           >
             Open in Google Maps
@@ -26,6 +27,7 @@
           <a
             :href="createGoogleMapsLink(distanceOptimizedRoute)"
             target="_blank"
+            @click="handleMapLinkClick('distance_optimized')"
             class="text-blue-500 hover:text-blue-600"
           >
             Open in Google Maps
@@ -39,6 +41,7 @@
 <script>
 import { onMounted, ref } from 'vue'
 import RouteTable from './RouteTable.vue'
+import { useAnalytics } from '../composables/useAnalytics'
 
 export default {
   name: 'RouteResults',
@@ -66,6 +69,7 @@ export default {
   emits: ['map-ready'],
   setup(props, { emit }) {
     const mapElement = ref(null)
+    const { trackButtonClick } = useAnalytics()
 
     onMounted(() => {
       setTimeout(() => {
@@ -75,8 +79,13 @@ export default {
       }, 0)
     })
 
+    const handleMapLinkClick = (routeType) => {
+      trackButtonClick(`open_${routeType}_map`)
+    }
+
     return {
       mapElement,
+      handleMapLinkClick,
       formatTime(seconds) {
         return `${(seconds / 60).toFixed(2)} minutes`
       },
