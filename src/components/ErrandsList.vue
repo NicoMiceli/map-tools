@@ -69,7 +69,7 @@ export default {
   setup(props, { emit }) {
     const errandInputs = ref([])
     const autocompletes = ref([])
-    const { trackFormInteract, trackFormComplete, trackAutocompleteSelect, trackButtonClick } = useAnalytics()
+    const { trackFormInteract, trackFormComplete, trackAutocompleteSelect, trackButtonClick, trackError } = useAnalytics()
 
     const initializeAutocomplete = (element, index) => {
       if (!window.google?.maps?.places || !element) return
@@ -104,6 +104,12 @@ export default {
             emit('update:errands', newErrands)
           } catch (error) {
             console.error('Error handling place selection:', error)
+            trackError('autocomplete_selection_error', {
+              error_message: error.message || 'Failed to handle place selection',
+              error_type: 'autocomplete',
+              context: 'errands_list',
+              errand_index: index + 1
+            })
           }
         })
 
@@ -117,6 +123,12 @@ export default {
         autocompletes.value[index] = autocomplete
       } catch (error) {
         console.error('Error initializing autocomplete:', error)
+        trackError('autocomplete_init_error', {
+          error_message: error.message || 'Failed to initialize autocomplete',
+          error_type: 'autocomplete',
+          context: 'errands_list',
+          errand_index: index + 1
+        })
       }
     }
 

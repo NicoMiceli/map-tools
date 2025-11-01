@@ -95,7 +95,7 @@ export default {
     const destinationAutocomplete = ref(null)
     
     const { savedHomeAddress, saveHomeAddress, loadHomeAddress } = useSavedAddresses()
-    const { trackFormInteract, trackFormComplete, trackAutocompleteSelect, trackButtonClick } = useAnalytics()
+    const { trackFormInteract, trackFormComplete, trackAutocompleteSelect, trackButtonClick, trackError } = useAnalytics()
 
     const setHomeAddress = (field) => {
       if (savedHomeAddress.value) {
@@ -149,6 +149,12 @@ export default {
             }
           } catch (error) {
             console.error('Error handling place selection:', error)
+            trackError('autocomplete_selection_error', {
+              error_message: error.message || 'Failed to handle place selection',
+              error_type: 'autocomplete',
+              context: 'location_input',
+              field: updateField.replace('update:', '')
+            })
           }
         })
 
@@ -161,6 +167,11 @@ export default {
         return autocomplete
       } catch (error) {
         console.error('Error initializing autocomplete:', error)
+        trackError('autocomplete_init_error', {
+          error_message: error.message || 'Failed to initialize autocomplete',
+          error_type: 'autocomplete',
+          context: 'location_input'
+        })
         return null
       }
     }

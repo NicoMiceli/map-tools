@@ -84,6 +84,23 @@ export function trackRouteSuccess(routeData) {
 }
 
 /**
+ * Track application errors
+ * @param {string} errorLabel - The error identifier/location
+ * @param {Object} errorDetails - Details about the error
+ * @param {string} errorDetails.error_message - The error message
+ * @param {string} [errorDetails.error_type] - Type/category of error
+ * @param {string} [errorDetails.context] - Additional context about where/when error occurred
+ */
+export function trackError(errorLabel, errorDetails = {}) {
+  const params = {
+    label: errorLabel,
+    error_message: errorDetails.error_message || 'Unknown error',
+    ...errorDetails
+  }
+  trackEvent('app_error', params)
+}
+
+/**
  * Composable hook for using analytics in Vue components
  */
 export function useAnalytics() {
@@ -93,7 +110,8 @@ export function useAnalytics() {
     trackFormComplete,
     trackAutocompleteSelect,
     trackButtonClick,
-    trackRouteSuccess
+    trackRouteSuccess,
+    trackError
   }
 }
 

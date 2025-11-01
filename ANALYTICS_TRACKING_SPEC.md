@@ -17,6 +17,7 @@ This document defines all Google Analytics events tracked in the Better Paths ap
 | `autocomplete_select` | Track Google autocomplete selections | 5+ (dynamic) |
 | `button_click` | Track all button interactions | 7 |
 | `route_success` | Track successful route calculations | 1 |
+| `app_error` | Track application errors and failures | 8+ |
 
 ---
 
@@ -177,6 +178,115 @@ Triggered when route calculation completes successfully.
 
 ---
 
+## 6. Error Events
+
+**Event Name:** `app_error`
+
+Triggered when an error occurs in the application. Helps identify issues, monitor application health, and prioritize bug fixes.
+
+| Label | Component | Error Type | Trigger | Example |
+|-------|-----------|------------|---------|---------|
+| `api_key_missing` | App | Configuration | Google Maps API key not found in environment | See example below |
+| `maps_init_failed` | App, LocationInput, ErrandsList | Maps Initialization | Google Maps fails to initialize | See example below |
+| `validation_no_errands` | App | Validation | User attempts calculation with no errands | See example below |
+| `validation_missing_locations` | App | Validation | User attempts calculation without origin/destination | See example below |
+| `route_calculation_failed` | App | Calculation | Route calculation fails | See example below |
+| `autocomplete_init_error` | LocationInput, ErrandsList | Autocomplete | Failed to initialize Google autocomplete | See example below |
+| `autocomplete_selection_error` | LocationInput, ErrandsList | Autocomplete | Failed to handle autocomplete selection | See example below |
+
+**Common Parameters:**
+- `label` (string) - Error identifier
+- `error_message` (string) - Human-readable error message
+- `error_type` (string) - Category of error (configuration, validation, calculation, autocomplete, maps_initialization)
+- `context` (string) - Where/when the error occurred
+- Additional context-specific parameters
+
+### Error Examples:
+
+**Configuration Error:**
+```json
+{
+  "event": "app_error",
+  "label": "api_key_missing",
+  "error_message": "Google Maps API key not found in environment variables",
+  "error_type": "configuration",
+  "context": "app_initialization"
+}
+```
+
+**Maps Initialization Error:**
+```json
+{
+  "event": "app_error",
+  "label": "maps_init_failed",
+  "error_message": "Failed to load Google Maps library",
+  "error_type": "maps_initialization",
+  "context": "app_mount"
+}
+```
+
+**Validation Error - No Errands:**
+```json
+{
+  "event": "app_error",
+  "label": "validation_no_errands",
+  "error_message": "No valid errand addresses entered",
+  "error_type": "validation",
+  "context": "route_calculation"
+}
+```
+
+**Validation Error - Missing Locations:**
+```json
+{
+  "event": "app_error",
+  "label": "validation_missing_locations",
+  "error_message": "Missing origin or destination address",
+  "error_type": "validation",
+  "context": "route_calculation",
+  "has_origin": true,
+  "has_destination": false
+}
+```
+
+**Route Calculation Error:**
+```json
+{
+  "event": "app_error",
+  "label": "route_calculation_failed",
+  "error_message": "ZERO_RESULTS: No route could be found",
+  "error_type": "calculation",
+  "context": "route_calculation",
+  "transport_mode": "driving",
+  "num_errands": 3
+}
+```
+
+**Autocomplete Initialization Error:**
+```json
+{
+  "event": "app_error",
+  "label": "autocomplete_init_error",
+  "error_message": "Failed to initialize Google Places autocomplete",
+  "error_type": "autocomplete",
+  "context": "location_input"
+}
+```
+
+**Autocomplete Selection Error:**
+```json
+{
+  "event": "app_error",
+  "label": "autocomplete_selection_error",
+  "error_message": "Cannot read property 'formatted_address' of undefined",
+  "error_type": "autocomplete",
+  "context": "errands_list",
+  "errand_index": 2
+}
+```
+
+---
+
 ## Aggregation and Reporting Guidelines
 
 ### In Google Analytics 4
@@ -218,6 +328,32 @@ button_click (label: calculate_routes)
 - **Filter by:** Event parameter `custom_time_used = true`
 - **Use case:** Measure adoption of scheduling feature
 
+#### 8. Error Monitoring and Health
+- **Event Name:** `app_error`
+- **Group by:** Event parameter `label` or `error_type`
+- **Use case:** Monitor application errors and identify issues
+
+#### 9. Error Rate Calculation
+- Compare `app_error` count vs successful operations
+- **Example:** `route_calculation_failed` vs `route_success`
+- **Use case:** Calculate success/failure rates
+
+#### 10. Error Type Distribution
+- **Event Name:** `app_error`
+- **Group by:** Event parameter `error_type`
+- **Use case:** Identify most common error categories (validation, configuration, calculation, etc.)
+
+#### 11. Component Error Analysis
+- **Event Name:** `app_error`
+- **Group by:** Event parameter `context`
+- **Use case:** Identify which components or features have the most errors
+
+#### 12. Critical Error Alerts
+Set up custom alerts in GA4 for critical errors:
+- `api_key_missing` - Configuration issue
+- `maps_init_failed` - Service degradation
+- `route_calculation_failed` - Core functionality failure
+
 ---
 
 ## Event Implementation
@@ -233,8 +369,11 @@ src/composables/useAnalytics.js
 - `trackAutocompleteSelect(fieldLabel, selectedValue?)` - Track autocomplete selection
 - `trackButtonClick(buttonLabel, additionalParams?)` - Track button clicks
 - `trackRouteSuccess(routeData)` - Track successful route calculation
+- `trackError(errorLabel, errorDetails)` - Track application errors
 
-### Implementation Example:
+### Implementation Examples:
+
+**Button Click:**
 ```javascript
 import { useAnalytics } from '../composables/useAnalytics'
 
@@ -242,6 +381,25 @@ const { trackButtonClick } = useAnalytics()
 
 // Track a button click
 trackButtonClick('my_button_label')
+```
+
+**Error Tracking:**
+```javascript
+import { useAnalytics } from '../composables/useAnalytics'
+
+const { trackError } = useAnalytics()
+
+// Track an error
+try {
+  // Some operation that might fail
+  await riskyOperation()
+} catch (error) {
+  trackError('operation_failed', {
+    error_message: error.message,
+    error_type: 'api',
+    context: 'my_component'
+  })
+}
 ```
 
 ---
@@ -257,6 +415,8 @@ trackButtonClick('my_button_label')
 4. **Privacy:** No personally identifiable information (PII) is tracked. Addresses are only included in autocomplete events for understanding user behavior, not for identification.
 
 5. **Event Validation:** Events only fire when expected conditions are met (e.g., form_complete only fires if field has a value).
+
+6. **Error Tracking:** All errors are tracked with standardized labels and error types for easy filtering and analysis. Validation errors are tracked before showing alerts to users.
 
 ---
 
@@ -284,5 +444,6 @@ trackButtonClick('my_button_label')
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2025-11-01 | 1.1.0 | Added comprehensive error tracking (app_error event) with 8+ error types |
 | 2025-11-01 | 1.0.0 | Initial implementation with all core events |
 

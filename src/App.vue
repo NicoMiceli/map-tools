@@ -69,7 +69,7 @@ export default {
     console.log('API Key loaded:', API_KEY ? 'Yes' : 'No')
     
     const { initGoogleMaps, calculateRoutes: calculateGoogleRoutes } = useGoogleMaps(API_KEY)
-    const { trackButtonClick, trackRouteSuccess } = useAnalytics()
+    const { trackButtonClick, trackRouteSuccess, trackError } = useAnalytics()
 
     // Initialize all reactive references
     const origin = ref('')
@@ -92,6 +92,11 @@ export default {
     onMounted(async () => {
       if (!import.meta.env.VITE_GOOGLE_MAPS_API_KEY) {
         console.error('Google Maps API key not found in environment variables')
+        trackError('api_key_missing', {
+          error_message: 'Google Maps API key not found in environment variables',
+          error_type: 'configuration',
+          context: 'app_initialization'
+        })
         return
       }
       try {
@@ -99,6 +104,11 @@ export default {
         console.log('Google Maps initialized successfully')
       } catch (error) {
         console.error('Failed to initialize Google Maps:', error)
+        trackError('maps_init_failed', {
+          error_message: error.message || 'Failed to initialize Google Maps',
+          error_type: 'maps_initialization',
+          context: 'app_mount'
+        })
       }
     })
 
@@ -110,6 +120,11 @@ export default {
         mapReady.value = true
       } catch (error) {
         console.error('Failed to initialize Google Maps:', error)
+        trackError('maps_init_failed', {
+          error_message: error.message || 'Failed to initialize Google Maps',
+          error_type: 'maps_initialization',
+          context: 'map_ready_handler'
+        })
       }
     }
 
@@ -131,11 +146,23 @@ export default {
         const validErrands = errands.value.filter(errand => errand && errand.trim())
         
         if (validErrands.length === 0) {
+          trackError('validation_no_errands', {
+            error_message: 'No valid errand addresses entered',
+            error_type: 'validation',
+            context: 'route_calculation'
+          })
           alert('Please enter at least one valid errand address')
           return
         }
 
         if (!origin.value || !destination.value) {
+          trackError('validation_missing_locations', {
+            error_message: 'Missing origin or destination address',
+            error_type: 'validation',
+            context: 'route_calculation',
+            has_origin: !!origin.value,
+            has_destination: !!destination.value
+          })
           alert('Please enter both origin and destination addresses')
           return
         }
@@ -177,6 +204,13 @@ export default {
         }
       } catch (error) {
         console.error('Route calculation error:', error)
+        trackError('route_calculation_failed', {
+          error_message: error.message || 'Route calculation failed',
+          error_type: 'calculation',
+          context: 'route_calculation',
+          transport_mode: transportMode.value,
+          num_errands: errands.value.filter(e => e && e.trim()).length
+        })
         alert(`Failed to calculate routes: ${error.message}`)
       } finally {
         isLoading.value = false
