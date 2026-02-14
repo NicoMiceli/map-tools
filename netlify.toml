@@ -1,5 +1,4 @@
 [build]
-  base = "vue-maps-tools"
   command = "npm run build"
   publish = "dist"
   
