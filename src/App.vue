@@ -1,7 +1,15 @@
-<template> 
-<!-- bg-gradient-to-r from-slate-800 to-indigo-900  -->
-<!-- bg-gradient-to-r from-emerald-500 to-emerald-900  -->
-  <div class="min-h-screen bg-gradient-to-r from-slate-800 to-indigo-900 text-white">
+<template>
+  <div v-if="loading" class="min-h-screen bg-slate-900 flex items-center justify-center text-white">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+  </div>
+  
+  <LoginView v-else-if="!isAuthenticated" />
+  
+  <div v-else class="min-h-screen bg-gradient-to-r from-slate-800 to-indigo-900 text-white relative">
+    <div class="absolute top-4 right-4 z-50">
+      <LoginButton />
+    </div>
+
     <div class="container mx-auto px-4 max-w-4xl pt-12">
       <h1 class="text-5xl font-bold mb-8 bg-gradient-to-r from-pink-500 to-yellow-500 bg-clip-text text-transparent text-center">
         Better Paths
@@ -55,6 +63,9 @@ import TransportOptions from './components/TransportOptions.vue'
 import RouteResults from './components/RouteResults.vue'
 import { useGoogleMaps } from './composables/useGoogleMaps'
 import { useAnalytics } from './composables/useAnalytics'
+import { useAuth } from './composables/useAuth'
+import LoginView from './components/LoginView.vue'
+import LoginButton from './components/LoginButton.vue'
 
 export default {
   name: 'App',
@@ -62,9 +73,12 @@ export default {
     LocationInput,
     ErrandsList,
     TransportOptions,
-    RouteResults
+    RouteResults,
+    LoginView,
+    LoginButton
   },
   setup() {
+    const { isAuthenticated, loading } = useAuth()
     const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
     console.log('API Key loaded:', API_KEY ? 'Yes' : 'No')
     
@@ -237,7 +251,9 @@ export default {
       totalDistance,
       calculateRoutes,
       isLoading,
-      handleMapReady
+      handleMapReady,
+      isAuthenticated,
+      loading
     }
   }
 }
