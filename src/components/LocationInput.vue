@@ -3,7 +3,7 @@
     <div class="grid grid-cols-2 gap-4">
       <div>
         <div class="flex justify-between items-center mb-2">
-          <label class="block text-sm font-medium text-white bg-clip-text text-transparent">
+          <label :class="['block text-sm font-medium', labelClass]">
             Starting Point
           </label>
             <div class="flex gap-2">
@@ -44,7 +44,7 @@
 
       <div>
         <div class="flex justify-between items-center mb-2">
-          <label class="block text-sm font-medium text-white bg-clip-text text-transparent">
+          <label :class="['block text-sm font-medium', labelClass]">
             Final Destination
           </label>
           <button 
@@ -85,7 +85,11 @@ export default {
   name: 'LocationInput',
   props: {
     origin: String,
-    destination: String
+    destination: String,
+    labelClass: {
+      type: String,
+      default: 'text-white'
+    }
   },
   emits: ['update:origin', 'update:destination'],
   setup(props, { emit }) {

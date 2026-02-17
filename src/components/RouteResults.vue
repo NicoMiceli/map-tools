@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-4">
-    <div id="map" ref="mapElement" class="h-96 w-full rounded-lg shadow-md"></div>
+    <div v-if="showMap" id="map" ref="mapElement" class="h-96 w-full rounded-lg shadow-md"></div>
     
     <div v-if="timeOptimizedRoute && timeOptimizedRoute.length" class="space-y-4">
       <div>
@@ -64,6 +64,10 @@ export default {
     totalDistance: {
       type: Number,
       default: 0
+    },
+    showMap: {
+      type: Boolean,
+      default: true
     }
   },
   emits: ['map-ready'],

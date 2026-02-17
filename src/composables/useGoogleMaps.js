@@ -9,7 +9,7 @@ export function useGoogleMaps(apiKey) {
 
   const initGoogleMaps = async () => {
     console.log('initGoogleMaps called with API key:', apiKey ? 'Present' : 'Missing')
-    
+
     if (window.google?.maps?.places) {
       console.log('Google Maps already loaded, reusing instance')
       google.value = window.google
@@ -74,21 +74,39 @@ export function useGoogleMaps(apiKey) {
     }
   }
 
+  const mountMap = (element) => {
+    if (!google.value) {
+      console.error('Google Maps API not initialized')
+      return
+    }
+    if (!element) return
+
+    map.value = new google.value.maps.Map(element, {
+      zoom: 12,
+      center: { lat: 39.9526, lng: -75.1652 },
+      disableDefaultUI: false,
+      zoomControl: true,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false
+    })
+
+    if (directionsRenderer.value) {
+      directionsRenderer.value.setMap(map.value)
+    }
+  }
+
   const calculateRoute = async (waypoints, mode, departureTime) => {
     // Ensure Google Maps is initialized
     if (!google.value) {
       await initGoogleMaps()
     }
 
-    // Initialize map if not already done
+    // Initialize map if not already done - fallback for V1
     if (!map.value) {
       const mapElement = document.getElementById("map")
       if (mapElement) {
-        map.value = new google.value.maps.Map(mapElement, {
-          zoom: 12,
-          center: { lat: 39.9526, lng: -75.1652 }
-        })
-        directionsRenderer.value.setMap(map.value)
+        mountMap(mapElement)
       }
     }
 
@@ -139,10 +157,10 @@ export function useGoogleMaps(apiKey) {
     try {
       const result = await directionsService.value.route(request)
       directionsRenderer.value.setDirections(result)
-      
+
       let totalDistance = 0
       let totalDuration = 0
-      
+
       result.routes[0].legs.forEach(leg => {
         totalDistance += leg.distance.value
         totalDuration += leg.duration.value
@@ -190,6 +208,8 @@ export function useGoogleMaps(apiKey) {
 
   return {
     initGoogleMaps,
-    calculateRoutes
+    calculateRoutes,
+    mountMap,
+    map
   }
 } 

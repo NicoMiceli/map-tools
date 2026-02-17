@@ -5,54 +5,70 @@
   
   <LoginView v-else-if="!isAuthenticated" />
   
-  <div v-else class="min-h-screen bg-gradient-to-r from-slate-800 to-indigo-900 text-white relative">
-    <div class="absolute top-4 right-4 z-50">
-      <LoginButton />
-    </div>
+  <template v-else>
+    <!-- V1 Layout -->
+    <div v-if="uiVersion === 1" class="min-h-screen bg-gradient-to-r from-slate-800 to-indigo-900 text-white relative">
+      <div class="absolute top-4 right-4 z-50">
+        <LoginButton />
+      </div>
 
-    <div class="container mx-auto px-4 max-w-4xl pt-12">
-      <h1 class="text-5xl font-bold mb-8 bg-gradient-to-r from-pink-500 to-yellow-500 bg-clip-text text-transparent text-center">
-        Better Paths
-      </h1>
-      <p class="mb-8 text-gray-200 text-center">Find the best route for your errands and other stuff you have to do.</p>
-      
-      <div class="bg-gray-800/50 backdrop-blur-sm rounded-lg shadow p-6 space-y-6">
-        <LocationInput 
-          v-model:origin="origin"
-          v-model:destination="destination"
-        />
+      <div class="container mx-auto px-4 max-w-4xl pt-12">
+        <h1 class="text-5xl font-bold mb-8 bg-gradient-to-r from-pink-500 to-yellow-500 bg-clip-text text-transparent text-center">
+          Better Paths
+        </h1>
+        <p class="mb-8 text-gray-200 text-center">Find the best route for your errands and other stuff you have to do.</p>
+        
+        <div class="bg-gray-800/50 backdrop-blur-sm rounded-lg shadow p-6 space-y-6">
+          <LocationInput 
+            v-model:origin="origin"
+            v-model:destination="destination"
+          />
 
-        <ErrandsList 
-          v-model:errands="errands"
-          v-model:numErrands="numErrands"
-        />
+          <ErrandsList 
+            v-model:errands="errands"
+            v-model:numErrands="numErrands"
+          />
 
-        <TransportOptions
-          v-model:transportMode="transportMode"
-          v-model:useCustomTime="useCustomTime"
-          v-model:departureDate="departureDate"
-          v-model:departureTime="departureTime"
-        />
+          <TransportOptions
+            v-model:transportMode="transportMode"
+            v-model:useCustomTime="useCustomTime"
+            v-model:departureDate="departureDate"
+            v-model:departureTime="departureTime"
+          />
 
-        <button elevation="24"
-          @click="calculateRoutes"
-          :disabled="isLoading"
-          class="w-full bg-gradient-to-r from-pink-500 to-yellow-500 text-white px-4 py-2 rounded hover:from-pink-600 hover:to-yellow-600 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
-        >
-          {{ isLoading ? 'Calculating...' : 'Calculate Best Routes' }}
-        </button>
+          <button elevation="24"
+            @click="calculateRoutes"
+            :disabled="isLoading"
+            class="w-full bg-gradient-to-r from-pink-500 to-yellow-500 text-white px-4 py-2 rounded hover:from-pink-600 hover:to-yellow-600 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
+          >
+            {{ isLoading ? 'Calculating...' : 'Calculate Best Routes' }}
+          </button>
 
-        <RouteResults
-          v-if="showResults"
-          :timeOptimizedRoute="timeOptimizedRoute"
-          :distanceOptimizedRoute="distanceOptimizedRoute"
-          :totalTime="totalTime"
-          :totalDistance="totalDistance"
-          @map-ready="handleMapReady"
-        />
+          <RouteResults
+            v-if="showResults"
+            :timeOptimizedRoute="timeOptimizedRoute"
+            :distanceOptimizedRoute="distanceOptimizedRoute"
+            :totalTime="totalTime"
+            :totalDistance="totalDistance"
+            @map-ready="handleMapReady"
+          />
+        </div>
       </div>
     </div>
-  </div>
+
+    <!-- V2 Layout -->
+    <LandingPageV2 v-if="uiVersion === 2" />
+
+    <!-- Version Toggle -->
+    <div class="fixed bottom-6 right-6 z-[100]">
+      <button 
+        @click="toggleVersion"
+        class="bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 px-6 py-3 rounded-full shadow-2xl transition-all font-bold flex items-center gap-2"
+      >
+        <span>Switch to {{ uiVersion === 1 ? 'V2 (Map Focus)' : 'V1 (Classic)' }}</span>
+      </button>
+    </div>
+  </template>
 </template>
 
 <script>
@@ -61,6 +77,7 @@ import LocationInput from './components/LocationInput.vue'
 import ErrandsList from './components/ErrandsList.vue'
 import TransportOptions from './components/TransportOptions.vue'
 import RouteResults from './components/RouteResults.vue'
+import LandingPageV2 from './components/LandingPageV2.vue'
 import { useGoogleMaps } from './composables/useGoogleMaps'
 import { useAnalytics } from './composables/useAnalytics'
 import { useAuth } from './composables/useAuth'
@@ -75,7 +92,8 @@ export default {
     TransportOptions,
     RouteResults,
     LoginView,
-    LoginButton
+    LoginButton,
+    LandingPageV2
   },
   setup() {
     const { isAuthenticated, loading } = useAuth()
@@ -84,6 +102,13 @@ export default {
     
     const { initGoogleMaps, calculateRoutes: calculateGoogleRoutes } = useGoogleMaps(API_KEY)
     const { trackButtonClick, trackRouteSuccess, trackError } = useAnalytics()
+
+    // UI Version State
+    const uiVersion = ref(2)
+    const toggleVersion = () => {
+      uiVersion.value = uiVersion.value === 1 ? 2 : 1
+      trackButtonClick(`switch_to_v${uiVersion.value}`)
+    }
 
     // Initialize all reactive references
     const origin = ref('')
@@ -236,6 +261,8 @@ export default {
     })
 
     return {
+      uiVersion,
+      toggleVersion,
       origin,
       destination,
       numErrands,
