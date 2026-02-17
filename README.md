@@ -50,80 +50,58 @@ Finally, push your changes to the `master` branch on GitHub:
 git push origin master
 ```
 
-### 3. Deploying to Netlify
+### 3. Deploying to Firebase Hosting
 
-This project can be deployed to Netlify.
+This project is deployed to Firebase Hosting.
 
 #### Prerequisites
 
-1.  **Install Netlify CLI**: If you don't have it, install the Netlify command-line interface globally.
+1.  **Install Firebase CLI**: If you don't have it, install the Firebase command-line interface globally.
     ```sh
-    npm install -g netlify-cli
+    npm install -g firebase-tools
     ```
 
-2.  **Login to Netlify**: Authenticate with your Netlify account.
+2.  **Login to Firebase**: Authenticate with your Google account.
     ```sh
-    netlify login
+    firebase login
     ```
 
 #### Environment Variables
 
-You need to set up your Google Maps API key as an environment variable in Netlify.
-
-1.  Create a `.env` file in the project root with your Google Maps API key for local development:
+You need to set up your environment variables.
+1.  Create a `.env` file in the project root (or use `.env.production` for production builds):
     ```
     VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
-    ```
-
-2.  Set the environment variable in your Netlify project settings. You can do this through the Netlify UI or via the CLI:
-    ```sh
-    netlify env:set VITE_GOOGLE_MAPS_API_KEY your_api_key_here
+    VITE_FIREBASE_API_KEY=your_firebase_api_key
+    VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+    VITE_FIREBASE_PROJECT_ID=your_project_id
+    VITE_FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
+    VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+    VITE_FIREBASE_APP_ID=your_app_id
     ```
 
 #### Deployment Commands
 
 There are scripts in `package.json` to simplify deployment.
 
-*   **Deploy to a draft URL**: This will give you a preview of your deployment.
+*   **Deploy to production**: This will build the app and deploy it to the live site.
     ```sh
-    npm run deploy:draft
+    npm run deploy
     ```
 
-*   **Deploy to production**: This will deploy your site to the main URL.
+*   **Deploy a preview channel**: This will create a temporary preview URL.
     ```sh
-    npm run deploy:prod
+    npm run deploy:preview
     ```
 
-You can also use the Netlify CLI directly for more control:
+#### Usefull Firebase Commands
 
-*   **Deploy to a draft URL**:
+*   **Initialize project**:
     ```sh
-    netlify deploy
+    firebase init hosting
     ```
 
-*   **Deploy to production**:
+*   **Served locally**:
     ```sh
-    netlify deploy --prod
-    ```
-
-*   **Force a production deploy without cache**:
-    ```sh
-    netlify deploy --prod --force
-    ```
-
-#### Useful Netlify Commands
-
-*   **Check site status**:
-    ```sh
-    netlify status
-    ```
-
-*   **Open site admin panel**:
-    ```sh
-    netlify open
-    ```
-
-*   **View deployment logs**:
-    ```sh
-    netlify watch
+    firebase serve
     ```
